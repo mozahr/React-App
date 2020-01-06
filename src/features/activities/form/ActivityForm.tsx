@@ -1,20 +1,22 @@
 import React, { useState, FormEvent } from "react";
 import { Segment, Form, Button } from "semantic-ui-react";
 import { IActivity } from "../../../app/models/activity";
-import {v4 as uuid} from 'uuid' ;
+import { v4 as uuid } from "uuid";
 
 interface IProps {
   setEditMode: (editMode: boolean) => void;
   activity: IActivity | null;
   createActivity: (activity: IActivity) => void;
   editActivity: (activity: IActivity) => void;
+  submitting: boolean;
 }
 // Clear allow adjust floated to the parent element?
 export const ActivityForm: React.FC<IProps> = ({
   setEditMode,
   activity: initializeFormState,
   createActivity,
-  editActivity
+  editActivity,
+  submitting
 }) => {
   const initializeForm = () => {
     if (initializeFormState) return initializeFormState;
@@ -33,16 +35,14 @@ export const ActivityForm: React.FC<IProps> = ({
   const [activity, setActivity] = useState<IActivity>(initializeForm);
 
   const handleSubmit = () => {
-    if (activity.id.length === 0){
-
+    if (activity.id.length === 0) {
       let newActivity = {
         ...activity,
-        id:uuid()
-      }
+        id: uuid()
+      };
       createActivity(newActivity);
-    } 
-    else editActivity(activity);
-    //console.log(activity); 
+    } else editActivity(activity);
+    //console.log(activity);
   };
   const handleInputChange = (
     event: FormEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -94,12 +94,13 @@ export const ActivityForm: React.FC<IProps> = ({
           placeholder="Venue"
           value={activity.venue}
         />
-        <Button floated="right" content="Submit" positive type="submit" />
+        <Button loading = {submitting} floated="right" content="Submit" positive type="submit" />
         <Button
           onClick={() => setEditMode(false)}
           floated="right"
           content="Cancel"
           type="button"
+         
         />
       </Form>
     </Segment>

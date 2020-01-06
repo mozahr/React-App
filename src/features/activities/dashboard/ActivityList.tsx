@@ -2,18 +2,21 @@ import React from "react";
 import { Item, Button, Label, Segment } from "semantic-ui-react";
 import { IActivity } from "../../../app/models/activity";
 
-
 //Comment: This is considered as the viewModel, we use one for every component.
 interface IProps {
   activities: IActivity[];
   selectActivity: (id: string) => void;
-  deleteActivity: (id: string) => void;
+  deleteActivity: (event: React.MouseEvent<HTMLButtonElement>,id: string) => void;
+  submitting: boolean;
+  target: string
 }
 
 export const ActivityList: React.FC<IProps> = ({
   activities,
   selectActivity,
-  deleteActivity
+  deleteActivity,
+  submitting,
+  target
 }) => {
   return (
     //segment is like a panel in bootstrap
@@ -38,10 +41,13 @@ export const ActivityList: React.FC<IProps> = ({
                   color="blue"
                 />
                 <Button
-                  onClick={() => deleteActivity(activity.id)}
+                  name={activity.id}
+                  onClick={(e) => deleteActivity(e,activity.id)}
                   floated="right"
                   content="Delete"
                   color="red"
+                  loading={target === activity.id && submitting}
+                  
                 />
                 <Label basic content={activity.category} />
               </Item.Extra>

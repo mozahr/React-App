@@ -15,7 +15,9 @@ interface IProps {
   setSelectedActivity: (activity: IActivity | null) => void;
   createActivity: (activity: IActivity) => void;
   editActivity: (activity: IActivity) => void;
-  deleteActivity: (id: string) => void;
+  deleteActivity: (event: React.MouseEvent<HTMLButtonElement>,id: string) => void;
+  submitting: boolean 
+  target: string
 }
 //props is equivalent to data in ajax.
 //if not null then execute with && operator
@@ -28,7 +30,9 @@ export const ActivityDashboard: React.FC<IProps> = ({
   setSelectedActivity,
   createActivity,
   editActivity,
-  deleteActivity
+  deleteActivity,
+  submitting,
+  target
 }) => {
   return (
     <Grid>
@@ -37,6 +41,8 @@ export const ActivityDashboard: React.FC<IProps> = ({
           activities={activities}
           selectActivity={selectActivity}
           deleteActivity={deleteActivity}
+          submitting = {submitting}
+          target = {target}
         />
       </Grid.Column>
 
@@ -57,6 +63,8 @@ export const ActivityDashboard: React.FC<IProps> = ({
             setEditMode={setEditMode}
             createActivity={createActivity}
             editActivity={editActivity}
+            submitting = {submitting}
+
           />
         )}
       </Grid.Column>

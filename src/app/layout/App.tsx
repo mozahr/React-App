@@ -1,13 +1,18 @@
-import React, { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect, Fragment, SyntheticEvent } from "react";
 import { Container } from "semantic-ui-react";
-import axios from "axios";
 import { IActivity } from "../models/activity";
 import { Navbar } from "../../features/nav/Navbar";
 import { ActivityDashboard } from "../../features/activities/dashboard/ActivityDashboard";
+import agent from "../api/agent";
+import { LoadingComponent } from "./LoadingComponent";
 
 const App = () => {
   // using hooks to update state with valu on left and function to be called on right and give the type in ().
   const [activities, setActivities] = useState<IActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [target, setTarget] = useState("");
+
   const [selectedActivity, setSelectedActivity] = useState<IActivity | null>(
     null
   );
@@ -23,39 +28,59 @@ const App = () => {
     setEditMode(true);
   };
   const handleCreateActivity = (activity: IActivity) => {
+    setSubmitting(true);
     //so ... is used to add another to the array
-    setActivities([...activities, activity]);
-    setSelectedActivity(activity);
-    setEditMode(false);
+    agent.Activities.create(activity)
+      .then(() => {
+        setActivities([...activities, activity]);
+        setSelectedActivity(activity);
+        setEditMode(false);
+      })
+      .then(() => setSubmitting(false));
   };
   const handleEditActivity = (activity: IActivity) => {
-    setActivities([...activities.filter(a => a.id !== activity.id), activity]);
-    setSelectedActivity(activity);
-    setEditMode(false);
+    setSubmitting(true);
+    agent.Activities.update(activity)
+      .then(() => {
+        setActivities([
+          ...activities.filter(a => a.id !== activity.id),
+          activity
+        ]);
+        setSelectedActivity(activity);
+        setEditMode(false);
+      })
+      .then(() => setSubmitting(false));
   };
 
-  const handleDeleteActivity = (id: string) => {
-    try {
-      setActivities([...activities.filter(act => act.id !== id)]);
-      setSelectedActivity(null)
-    } catch (error) {
-      
-    }
+  const handleDeleteActivity = (
+    event: SyntheticEvent<HTMLButtonElement>,
+    id: string
+  ) => {
+    setTarget(event.currentTarget.name);
+
+    setSubmitting(true);
+    agent.Activities.delete(id)
+      .then(() => {
+        setActivities([...activities.filter(act => act.id !== id)]);
+        setSelectedActivity(null);
+      })
+      .then(() => setSubmitting(false));
   };
 
   useEffect(() => {
-    axios
-      .get<IActivity[]>("http://localhost:5000/api/activities")
+    agent.Activities.list()
       .then(response => {
         let activities: IActivity[] = [];
-        response.data.forEach(activity => {
+        response.forEach(activity => {
           activity.date = activity.date.split(".")[0];
           activities.push(activity);
         });
         setActivities(activities);
-      });
+      })
+      .then(() => setLoading(false));
   }, []);
 
+  if (loading) return <LoadingComponent content="Loading activities..." />;
   return (
     //have to specify instead of a div to contain the element. 'Fragment imported from react'
     <Fragment>
@@ -72,6 +97,8 @@ const App = () => {
           createActivity={handleCreateActivity}
           editActivity={handleEditActivity}
           deleteActivity={handleDeleteActivity}
+          submitting={submitting}
+          target = {target}
         />
       </Container>
     </Fragment>
